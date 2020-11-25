@@ -36,6 +36,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 # Libraries used during sorting procedures.
 import operator # <-- Convienient item retrieval during iteration
 import heapq # <-- Efficient sorting of large lists
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 # Importing data
