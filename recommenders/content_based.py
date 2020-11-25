@@ -39,29 +39,9 @@ import heapq # <-- Efficient sorting of large lists
 
 
 # Importing data
-movies = pd.read_csv('resources/data/movies.csv', sep = ',',delimiter=',')
-ratings = pd.read_csv('resources/data/ratings.csv')
+movies_url = 'https://raw.githubusercontent.com/Gireen-Naidu/unsupervised-predict-streamlit-template/master/resources/data/movies.csv'
+movies = pd.read_csv(movies_url,sep = ',',delimiter=',')
 movies.dropna(inplace=True)
-
-def data_preprocessing(subset_size):
-    """Prepare data for use within Content filtering algorithm.
-
-    Parameters
-    ----------
-    subset_size : int
-        Number of movies to use within the algorithm.
-
-    Returns
-    -------
-    Pandas Dataframe
-        Subset of movies selected for content-based filtering.
-
-    """
-    # Split genre data into individual words.
-    movies['keyWords'] = movies['genres'].str.replace('|', ' ')
-    # Subset of the data
-    movies_subset = movies[:subset_size]
-    return movies_subset
 
 # !! DO NOT CHANGE THIS FUNCTION SIGNATURE !!
 # You are, however, encouraged to change its content.  
