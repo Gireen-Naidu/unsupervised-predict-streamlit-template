@@ -63,8 +63,8 @@ def content_model(movie_list,top_n=10):
 
     """
     # Initializing the empty list of recommended movies
-    movies['keyWords'] = movies_adj['genres'].str.replace('|', ' ')
-    movies['tags'] = v[['title', 'keyWords']].agg(' '.join, axis=1)
+    movies['keyWords'] = movies['genres'].str.replace('|', ' ')
+    movies['tags'] = movies[['title', 'keyWords']].agg(' '.join, axis=1)
 
     movies.dropna(inplace=True)
 
