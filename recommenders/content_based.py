@@ -28,25 +28,33 @@
 """
 
 # Script dependencies
-import os
-import pandas as pd
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import CountVectorizer
-# Libraries used during sorting procedures.
-import operator # <-- Convienient item retrieval during iteration
-import heapq # <-- Efficient sorting of large lists
+import pandas as pd
+import scipy as sp # <-- The sister of Numpy, used in our code for numerical efficientcy.
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Entity featurization and similarity computation
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+# Libraries used during sorting procedures.
+import operator # <-- Convienient item retrieval during iteration
+import heapq # <-- Efficient sorting of large lists
 
 # Importing data
 movies_url = 'https://raw.githubusercontent.com/Gireen-Naidu/unsupervised-predict-streamlit-template/master/resources/data/movies.csv'
 movies = pd.read_csv(movies_url,sep = ',',delimiter=',')
+movies_adj = movies.loc[:50000]
+
+#ratings_url = 'https://raw.githubusercontent.com/Gireen-Naidu/unsupervised-predict-streamlit-template/master/resources/data/ratings.csv'
+#ratings = pd.read_csv(ratings_url)
+
 movies.dropna(inplace=True)
 
+
 # !! DO NOT CHANGE THIS FUNCTION SIGNATURE !!
-# You are, however, encouraged to change its content.  
+# You are, however, encouraged to change its content.
 def content_model(movie_list,top_n=10):
     """Performs Content filtering based upon a list of movies supplied
        by the app user.
@@ -65,24 +73,24 @@ def content_model(movie_list,top_n=10):
 
     """
     # Initializing the empty list of recommended movies
-    movies['keyWords'] = movies['genres'].str.replace('|', ' ')
-    movies['tags'] = movies[['title', 'keyWords']].agg(' '.join, axis=1)
+    movies_adj['keyWords'] = movies_adj['genres'].str.replace('|', ' ')
+    movies_adj['tags'] = movies_adj[['title', 'keyWords']].agg(' '.join, axis=1)
 
-    movies.dropna(inplace=True)
+    movies_adj.dropna(inplace=True)
 
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1,2),
                      min_df=1, stop_words='english')
 
     # Produce a feature matrix, where each row corresponds to a book,
     # with TF-IDF features as columns
-    tf_authTags_matrix = tf.fit_transform(movies['tags'])
+    tf_authTags_matrix = tf.fit_transform(movies_adj['tags'])
 
     cosine_sim_authTags = cosine_similarity(tf_authTags_matrix,tf_authTags_matrix)
 
     # Convienient indexes to between map book titles and indexes of
     # the books dataframe
-    titles = movies['title']
-    indices = pd.Series(movies['title'])
+    titles = movies_adj['title']
+    indices = pd.Series(movies_adj['title'])
     #indices = pd.Series(movies_adj.index, index=movies_adj['title'])
     #idx_1 = indices[indices == movie_list[0]]
     #return idx_1
