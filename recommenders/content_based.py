@@ -33,6 +33,10 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
+# Libraries used during sorting procedures.
+import operator # <-- Convienient item retrieval during iteration
+import heapq # <-- Efficient sorting of large lists
+
 
 # Importing data
 movies = pd.read_csv('resources/data/movies.csv', sep = ',',delimiter=',')
@@ -79,33 +83,46 @@ def content_model(movie_list,top_n=10):
 
     """
     # Initializing the empty list of recommended movies
-    recommended_movies = []
-    data = data_preprocessing(27000)
-    # Instantiating and generating the count matrix
-    count_vec = CountVectorizer()
-    count_matrix = count_vec.fit_transform(data['keyWords'])
-    indices = pd.Series(data['title'])
-    cosine_sim = cosine_similarity(count_matrix, count_matrix)
-    # Getting the index of the movie that matches the title
+    movies['keyWords'] = movies_adj['genres'].str.replace('|', ' ')
+    movies['tags'] = v[['title', 'keyWords']].agg(' '.join, axis=1)
+
+    movies.dropna(inplace=True)
+
+    tf = TfidfVectorizer(analyzer='word', ngram_range=(1,2),
+                     min_df=1, stop_words='english')
+
+    # Produce a feature matrix, where each row corresponds to a book,
+    # with TF-IDF features as columns
+    tf_authTags_matrix = tf.fit_transform(movies['tags'])
+
+    cosine_sim_authTags = cosine_similarity(tf_authTags_matrix,tf_authTags_matrix)
+
+    # Convienient indexes to between map book titles and indexes of
+    # the books dataframe
+    titles = movies['title']
+    indices = pd.Series(movies['title'])
+    #indices = pd.Series(movies_adj.index, index=movies_adj['title'])
+    #idx_1 = indices[indices == movie_list[0]]
+    #return idx_1
+    # Convert the string book title to a numeric index for our
+    # similarity matrix
+    #b_idx = indices[movie_title]
     idx_1 = indices[indices == movie_list[0]].index[0]
     idx_2 = indices[indices == movie_list[1]].index[0]
     idx_3 = indices[indices == movie_list[2]].index[0]
-    # Creating a Series with the similarity scores in descending order
-    rank_1 = cosine_sim[idx_1]
-    rank_2 = cosine_sim[idx_2]
-    rank_3 = cosine_sim[idx_3]
-    # Calculating the scores
+    rank_1 = cosine_sim_authTags[idx_1]
+    rank_2 = cosine_sim_authTags[idx_2]
+    rank_3 = cosine_sim_authTags[idx_3]
     score_series_1 = pd.Series(rank_1).sort_values(ascending = False)
     score_series_2 = pd.Series(rank_2).sort_values(ascending = False)
     score_series_3 = pd.Series(rank_3).sort_values(ascending = False)
     # Getting the indexes of the 10 most similar movies
     listings = score_series_1.append(score_series_1).append(score_series_3).sort_values(ascending = False)
-
     # Store movie names
     recommended_movies = []
     # Appending the names of movies
     top_50_indexes = list(listings.iloc[1:50].index)
-    # Removing chosen movies
+   # Removing chosen movies
     top_indexes = np.setdiff1d(top_50_indexes,[idx_1,idx_2,idx_3])
     for i in top_indexes[:top_n]:
         recommended_movies.append(list(movies['title'])[i])
